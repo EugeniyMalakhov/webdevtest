@@ -1,0 +1,9 @@
+{% extends 'myapp/base.html' %}
+{% load social_auth_widget %}
+
+{% block contact %}
+    <h3>LOGIN!</h3>
+	<form action="" method="post">
+		{% social_auth_widget %}
+	</form>
+{% endblock %}

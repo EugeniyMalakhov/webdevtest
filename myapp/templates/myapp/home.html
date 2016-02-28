@@ -1,0 +1,153 @@
+{% extends 'myapp/base.html' %}
+{% load social_auth_widget %}
+
+{% block message %}
+    {% if user.is_authenticated %}
+        <form action="/article/addarticle/{{ user.id }}/" id="home" method="post">{% csrf_token %}
+            <div class="control-group form-group">
+                <div class="controls">
+                    <label>Сообщение:</label><br>
+                    <input type="text" id="title" name="title" class="form-control" placeholder="Заголовок" required data-validation-required-message="Пожалуйста заполните заголовок статьи"/><br>
+                    <textarea name="text" rows="3" cols="10" class="form-control" placeholder="Введите текст..." id="text" required data-validation-required-message="Пожалуйста заполните текстовое поле" maxlength="999" style="resize:none"></textarea>
+                </div>
+            </div>
+            <input type="submit" id="submit" class="btn btn-primary" value="Отправить сообщение"/>
+        </form>
+        <hr>
+    {% else %}
+        <div class="social">
+            <form action="" method="post">
+		        {% social_auth_widget %}
+	        </form>
+            <br>
+        </div>
+        <div class="alert alert-danger">
+            <p>Для добавления и комментирования сообщений выполните вход!</p>
+        </div>
+        <div class="showAll">
+            <input type="button" class="btn btn-default" value="Закрыть все комментарии" onclick=$("div[class^='spoiler_body']").hide('normal')>
+            <input type="button" class="btn btn-default" value="Открыть все комментарии" onclick=$("div[class^='spoiler_body']").show('normal')>
+        </div>
+        <hr>
+    {% endif %}
+{% endblock %}
+
+{% block contact %}
+    {% for articl in articles %}
+        <div class="panel-group">
+            <div class="panel panel-default">
+                <div class='panel-heading'>
+                    {% if user.id == articl.user.id %}
+                        <span class="pull-right">
+                            <!-- Вызов модального окна удаления cjj,otybz -->
+                            <button class="btn btn-danger btn-xs" data-toggle="modal" data-target="#myModal">Х</button>
+                            <!-- Модальное окно подтверждения удаления -->
+                            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                            <h4 class="modal-title" id="myModalLabel">Подтверждение</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            Вы действительно хотите удалить Ваше сообщение?
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form action="/article/deleteart/{{ articl.id }}/" method="post">
+                                                {% csrf_token %}
+                                                <input type="submit" class="btn btn-danger" value="Удалить">
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </span>
+                    {% endif %}
+                    <div class="author">{{ articl.user }}</div>
+				    <span class='date'>
+                        <a href="/article/{{ articl.id }}/">{{ articl.date }}</a>
+                    </span>
+                </div>
+                <div class='panel-collapse collapse in'>
+                    <div class='panel-body'>{{ articl.text }}</div>
+                </div>
+            </div>
+            <div>
+            <a class="spoiler_links btn btn-toolbar">Комментарии</a>
+                <div class="spoiler_body">
+                    <ul class="media-list">
+                    {% for comm in comments %}
+                    {% if comm.article_id == articl.id %}
+                        <!-- Комментарий (уровень 1) -->
+                        <li class="media">
+                            <div class="media-body">
+                                <div class="panel panel-info">
+                                    <div class='panel-heading'>
+                                        <div class="author">{{ comm.user }}</div>
+				                        <span class='date'>{{ comm.date }}</span>
+                                    </div>
+                                    <div class='panel-body'>
+                                        <div class="media-text text-justify">{{ comm.comment }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% for subcom in subcomments %}
+                                {% if subcom.comment_id == comm.id %}
+                                <!-- Вложенный медиа-компонент (уровень 2) -->
+                                <div class="media">
+                                    <div class="media-body">
+                                        <div class="panel panel-info">
+                                            <div class='panel-heading'>
+                                                <div class="author">{{ subcom.user }}</div>
+				                                <span class='date'>{{ subcom.date }}</span>
+                                            </div>
+                                            <div class='panel-body'>
+                                                <div class="media-text text-justify">{{ subcom.subcomment }}</div>
+                                            </div>
+                                         </div>
+                                    </div>
+                                </div>
+                                <!-- Конец вложенного комментария (уровень 2) -->
+                                {% endif %}
+                            {% endfor %}
+                            <br>
+                        </li>
+                        <!-- Конец комментария (уровень 1) -->
+                    {% endif %}
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    <div class="row">
+        <ul class="pager">
+            {% if articles.has_previous %}
+                <li class="arrow"><a href="/page/{{ articles.previous_page_number }}/">&laquo;</a></li>
+            {% else %}
+                <li class="arrow disabled"><a>&laquo;</a></li>
+            {% endif %}
+            {% for page in articles.paginator.page_range %}
+                {% if page == articles.number %}
+                    <li><a href="/page/{{ page }}/">{{ page }}</a></li>
+                {% else %}
+                    <li><a href="/page/{{ page }}/">{{ page }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if articles.has_next %}
+                <li class="arrow"><a href="/page/{{ articles.next_page_number }}/">&raquo;</a></li>
+            {% else %}
+                <li class="arrow disabled"><a>&raquo;</a></li>
+            {% endif %}
+        </ul>
+    </div>
+{% endblock %}
+
+{% block footer %}
+    <footer>
+        <hr>
+        <div class="footer">
+        <p>&copy; For <a href="http://light-it.net/">LightIT</a> company</p>
+            </div>
+    </footer>
+{% endblock %}

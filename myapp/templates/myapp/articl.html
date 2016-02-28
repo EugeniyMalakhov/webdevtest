@@ -1,0 +1,156 @@
+{% extends 'myapp/base.html' %}
+
+{% block message %}
+    {% if not user.is_authenticated %}
+        <div class="alert alert-danger">
+            <p>Для добавления и комментирования сообщений выполните вход!</p>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block contact %}
+    <div class="panel panel-default">
+        <div class='panel-heading'>
+		    <h4 class='panel-title'><p>{{ article.title }}</p></h4>
+        </div>
+        <div class='panel-collapse collapse in'>
+            <div class='panel-body'>{{ article.text }}</div>
+        </div>
+    </div>
+    <p class="author">Опубликовал: <b>{{ article.user }}</b></p>
+        <hr>
+            <ul class="media-list">
+            {% for comm in comments %}
+                <!-- Комментарий (уровень 1) -->
+                <li class="media ">
+                    <div class="media-body">
+                        <div class="panel panel-info">
+                            <div class='panel-heading'>
+                                {% if user.id == comm.user.id %}
+                                    <span class="pull-right">
+                                        <!-- Вызов модального окна удаления комментария -->
+                                        <button class="btn btn-danger btn-xs" data-toggle="modal" data-target="#myModal">
+                                            Х
+                                        </button>
+                                    <!-- Модальное окно подтверждения удаления -->
+                                    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                                    <h4 class="modal-title" id="myModalLabel">Подтверждение</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Вы действительно хотите удалить Ваш комментарий?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <form action="/comment/deletecomm/{{ article.id }}/{{ comm.id }}/" method="post">
+                                                        {% csrf_token %}
+                                                        <input type="submit" class="btn btn-danger" value="Удалить">
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    </span>
+                                {% endif %}
+                                <div class="author">{{ comm.user }}</div>
+				                <span class='date'>{{ comm.date }}</span>
+                            </div>
+                            <div class='panel-collapse collapse in'>
+                                <div class='panel-body'>
+                                    <div class="media-text text-justify">{{ comm.comment }}</div>
+                                    {% if user.is_authenticated %}
+                                        <div class="pull-right"><a class="btn btn-toolbar" onclick="showHide('{{ comm.id }}')">Ответить</a></div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Вложенный медиа-компонент (уровень 2) -->
+                        {% for subcom in subcomments %}
+                            {% if subcom.comment_id == comm.id %}
+                            <div class="media">
+                                <div class="media-body">
+                                    <div class="panel panel-info">
+                                        <div class='panel-heading'>
+                                            {% if user.id == subcom.user.id %}
+                                                <!-- Вызов модального окна удаления ответа на комментарий -->
+                                                <span class="pull-right">
+                                                    <button class="btn btn-danger btn-xs" data-toggle="modal" data-target="#myModalsub">
+                                                        X
+                                                    </button>
+
+                                                <!-- Модальное окно подтверждения удаления -->
+                                                <div class="modal fade" id="myModalsub" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                                                <h4 class="modal-title" id="myModalLabel">Подтверждение</h4>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                Вы действительно хотите удалить Ваш ответ?
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <form action="/comment/deletesub/{{ article.id }}/{{ subcom.id }}/" method="post">
+                                                                    {% csrf_token %}
+                                                                    <input type="submit" class="btn btn-danger" value="Удалить">
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                </span>
+                                            {% endif %}
+                                            <div class="author">{{ subcom.user }}</div>
+				                            <span class='date'>{{ subcom.date }}</span>
+                                        </div>
+                                        <div class='panel-body'>
+                                            <div class="media-text text-justify">{{ subcom.subcomment }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                        <!-- Конец вложенного комментария (уровень 2) -->
+                    </div>
+                    <div id="{{ comm.id }}" style="display:none">
+                        <!-- Форма ответа на коментарий -->
+                        <form action="/comment/addsubcomment/{{ article.id }}/{{ comm.id }}/{{ user.id }}/" method="post">
+                            {% csrf_token %}
+                            <div class="control-group form-group">
+                                <div class="controls">
+                                    <label>Ответить:</label><br>
+                                    <textarea name="subcomment" rows="3" cols="10" class="form-control" id="subcomment" maxlength="999" style="resize:none"></textarea>
+                                </div>
+                            </div>
+                            <input type="submit" class="btn btn-primary" value="Прокоментировать">
+                        </form>
+                    </div>
+                </li>
+                <!-- Конец комментария (уровень 1) -->
+            {% endfor %}
+            </ul>
+            <hr>
+            {% if user.is_authenticated %}
+            <form action="/article/addcomment/{{ article.id }}/{{ user.id }}/" method="post">
+                {% csrf_token %}
+                <div class="control-group form-group">
+                    <div class="controls">
+                        <label>Добавить коментарий:</label><br>
+                        <textarea name="comment" rows="3" cols="10" class="form-control" id="comment" required data-validation-required-message="Пожалуйста заполните текстовое поле" maxlength="999" style="resize:none"></textarea>
+                    </div>
+                </div>
+                <input type="submit" class="btn btn-primary" value="Добавить коментарий">
+            </form>
+            {% endif %}
+
+{% endblock %}
+
+{% block footer %}
+    <footer>
+        <hr>
+        <p>Для компании <a href="http://light-it.net/">LightIT</a></p>
+    </footer>
+{% endblock %}

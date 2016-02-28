@@ -1,0 +1,51 @@
+body {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.container a.animate{
+    margin-left: 520px;
+}
+
+.container .navbar-brand {
+    font-family: Bickham Script Two, Charcoal, sans-serif;
+    font-size: 64px;
+}
+.showAll {
+    text-align: center;
+}
+
+.main-content {
+    margin-top: 80px;
+}
+
+.main-content .social {
+    min-height: 100%;
+    width: 300px;
+    margin: auto;
+}
+
+.right-margin {
+    position: absolute;
+    margin: 0;
+}
+
+.media-body .author,
+.panel-heading .author {
+    display: block;
+    font-size: 14px;
+    color: #000;
+    font-weight: 700;
+}
+
+.media {
+    margin-left: 70px;
+}
+
+.main-content .user_guide {
+    margin-left: 880px;
+}
+
+footer {
+    font-size: 16px;
+    text-align: center;
+}
