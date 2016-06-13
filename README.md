@@ -5,3 +5,5 @@ Test Web site for lightIT company
 - Django 1.8
 
 DB: SqLite
+
+Application developed with the registration through social networks
